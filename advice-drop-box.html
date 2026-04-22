@@ -49,7 +49,7 @@
     font-family: "Times New Roman", Times, serif;
     font-weight: 400;
     font-style: normal;
-    font-size: 38px;
+    font-size: 26;
     line-height: 1.1;
     letter-spacing: -0.01em;
     margin-bottom: 18px;
@@ -72,7 +72,7 @@
     display: block;
     font-size: 14px;
     font-style: normal;
-    color: var(--muted);
+    color: var(--ink);
     margin-bottom: 8px;
   }
 
@@ -93,7 +93,7 @@
   textarea { min-height: 120px; line-height: 1.5; }
 
   textarea::placeholder, input::placeholder {
-    color: var(--muted);
+    color: var(--ink);
     font-style: italic;
   }
 
@@ -175,7 +175,7 @@
     font-size: 14px;
     font-style: normal;
     text-align: center;
-    color: var(--muted);
+    color: var(--ink);
     opacity: 0;
     transition: opacity 250ms ease;
   }
@@ -205,7 +205,7 @@
     cursor: pointer;
   }
 
-  .again:hover { color: var(--muted); }
+  .again:hover { color: var(--ink); }
 
   @media (max-width: 480px) {
     h1 { font-size: 32px; }
@@ -242,7 +242,7 @@
 
           <div class="field">
             <label class="field-label" for="secret">What is bothering you?</label>
-            <textarea id="secret" name="secret" required maxlength="5000" placeholder="…"></textarea>
+            <textarea id="secret" name="secret" required maxlength="5000" placeholder="This is not the place to ask for urgent medical or life advice. Please consult a professional near you if your issues need immediate addressing."></textarea>
           </div>
 
           <div class="field">
@@ -251,12 +251,12 @@
           </div>
 
           <div class="field">
-            <label class="field-label" for="email">Email — optional, for a printed copy</label>
+            <label class="field-label" for="email">Email — this is optional. But if your question is selected and you would like a free copy of the paper to give to your mom as proof that you sought help, enter yours below. </label>
             <input type="email" id="email" name="email" placeholder="…" />
           </div>
 
           <div class="actions">
-            <button type="submit" id="submit-btn">Drop it</button>
+            <button type="submit" id="submit-btn">Submit</button>
           </div>
         </form>
 
