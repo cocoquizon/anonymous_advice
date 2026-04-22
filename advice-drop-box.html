@@ -68,15 +68,15 @@
 
   .field { margin-bottom: 22px; }
 
-  label {
+  label.field-label {
     display: block;
     font-size: 14px;
     font-style: italic;
     color: var(--muted);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
 
-  textarea, input[type="email"] {
+  textarea, input[type="email"], input[type="text"] {
     width: 100%;
     background: transparent;
     border: none;
@@ -95,6 +95,53 @@
   textarea::placeholder, input::placeholder {
     color: var(--muted);
     font-style: italic;
+  }
+
+  /* custom radio buttons */
+  .radios {
+    display: flex;
+    gap: 28px;
+    padding: 2px 0;
+  }
+
+  .radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
+    font-size: 17px;
+    font-style: italic;
+    user-select: none;
+  }
+
+  .radio input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .radio .dot {
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--ink);
+    border-radius: 50%;
+    position: relative;
+    flex-shrink: 0;
+    transition: background 150ms ease;
+  }
+
+  .radio input:checked + .dot::after {
+    content: "";
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 6px; height: 6px;
+    background: var(--ink);
+    border-radius: 50%;
+  }
+
+  .radio input:focus-visible + .dot {
+    outline: 1px solid var(--ink);
+    outline-offset: 2px;
   }
 
   .actions {
@@ -141,7 +188,24 @@
     font-style: italic;
     font-size: 22px;
     line-height: 1.4;
+    margin-bottom: 24px;
   }
+
+  .again {
+    display: inline-block;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 16px;
+    font-style: italic;
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .again:hover { color: var(--muted); }
 
   @media (max-width: 480px) {
     h1 { font-size: 32px; }
@@ -161,12 +225,33 @@
 
         <form id="secret-form">
           <div class="field">
-            <label for="secret">Your advice</label>
+            <span class="field-label">Type of advice</span>
+            <div class="radios">
+              <label class="radio">
+                <input type="radio" name="category" value="Life" required checked />
+                <span class="dot"></span>
+                <span>Life</span>
+              </label>
+              <label class="radio">
+                <input type="radio" name="category" value="Medical" />
+                <span class="dot"></span>
+                <span>Medical</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="secret">What is bothering you?</label>
             <textarea id="secret" name="secret" required maxlength="5000" placeholder="…"></textarea>
           </div>
 
           <div class="field">
-            <label for="email">Email — optional, for a printed copy</label>
+            <label class="field-label" for="pseudonym">Pseudonym — optional</label>
+            <input type="text" id="pseudonym" name="pseudonym" maxlength="60" placeholder="…" />
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="email">Email — optional, for a printed copy</label>
             <input type="email" id="email" name="email" placeholder="…" />
           </div>
 
@@ -181,25 +266,41 @@
       <div class="thanks" id="thanks-view">
         <img src="logo_FBCQ.jpg" alt="FBC Quarterly" class="logo" />
         <p>Thank you. Your advice is in the box.</p>
+        <button type="button" class="again" id="again-btn">Submit another request for advice →</button>
       </div>
 
     </div>
   </main>
 
   <script>
-    
+
     const FORMSPREE_ENDPOINT = "https://formspree.io/f/xpqkoqvb";
     const form = document.getElementById("secret-form");
     const btn = document.getElementById("submit-btn");
     const statusEl = document.getElementById("status");
     const formView = document.getElementById("form-view");
     const thanksView = document.getElementById("thanks-view");
+    const againBtn = document.getElementById("again-btn");
+
+    againBtn.addEventListener("click", () => {
+      form.reset();
+      // re-check the default radio
+      document.querySelector('input[name="category"][value="Life"]').checked = true;
+      btn.disabled = false;
+      btn.textContent = "Drop it";
+      statusEl.classList.remove("show");
+      thanksView.classList.remove("show");
+      formView.style.display = "block";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const secret = document.getElementById("secret").value.trim();
       const email = document.getElementById("email").value.trim();
+      const pseudonym = document.getElementById("pseudonym").value.trim();
+      const category = document.querySelector('input[name="category"]:checked')?.value || "Life";
       if (!secret) return;
 
       btn.disabled = true;
@@ -211,9 +312,11 @@
           method: "POST",
           headers: { "Accept": "application/json", "Content-Type": "application/json" },
           body: JSON.stringify({
+            category: category,
+            pseudonym: pseudonym || "(anonymous)",
             advice: secret,
             subscriber_email: email || "(not provided)",
-            _subject: "New advice for FBC Quarterly"
+            _subject: `New ${category.toLowerCase()} advice for FBC Quarterly`
           })
         });
 
@@ -233,3 +336,4 @@
   </script>
 </body>
 </html>
+{% endschema %}
