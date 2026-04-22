@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Advice Drop Box — FBC Quarterly</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --ink: #000000;
+    --muted: #888888;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Times New Roman", Times, serif;
+    font-size: 17px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  main {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 28px;
+  }
+
+  .sheet {
+    width: 100%;
+    max-width: 440px;
+    text-align: center;
+  }
+
+  .logo {
+    display: block;
+    width: 180px;
+    height: auto;
+    margin: 0 auto 28px;
+  }
+
+  h1 {
+    font-family: "Times New Roman", Times, serif;
+    font-weight: 400;
+    font-style: italic;
+    font-size: 38px;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin-bottom: 18px;
+  }
+
+  .dek {
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 40px;
+    color: var(--ink);
+  }
+
+  form {
+    text-align: left;
+  }
+
+  .field { margin-bottom: 22px; }
+
+  label {
+    display: block;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  textarea, input[type="email"] {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--ink);
+    padding: 6px 0;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 17px;
+    color: var(--ink);
+    resize: none;
+    outline: none;
+    border-radius: 0;
+  }
+
+  textarea { min-height: 120px; line-height: 1.5; }
+
+  textarea::placeholder, input::placeholder {
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .actions {
+    margin-top: 32px;
+    text-align: center;
+  }
+
+  button {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--ink);
+    padding: 10px 28px;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 16px;
+    font-style: italic;
+    cursor: pointer;
+    border-radius: 0;
+    transition: background 150ms ease, color 150ms ease;
+  }
+
+  button:hover:not(:disabled) {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  button:disabled { opacity: 0.4; cursor: wait; }
+
+  .status {
+    min-height: 20px;
+    margin-top: 18px;
+    font-size: 14px;
+    font-style: italic;
+    text-align: center;
+    color: var(--muted);
+    opacity: 0;
+    transition: opacity 250ms ease;
+  }
+  .status.show { opacity: 1; }
+
+  .thanks { display: none; }
+  .thanks.show { display: block; }
+
+  .thanks p {
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 32px; }
+    main { padding: 48px 22px; }
+    .logo { width: 150px; }
+  }
+</style>
+</head>
+<body>
+  <main>
+    <div class="sheet">
+
+      <div id="form-view">
+        <img src="logo_FBCQ.jpg" alt="FBC Quarterly" class="logo" />
+        <h1>Advice Drop Box</h1>
+        <p class="dek">Anonymous submissions for the next issue of FBC Quarterly.</p>
+
+        <form id="secret-form">
+          <div class="field">
+            <label for="secret">Your advice</label>
+            <textarea id="secret" name="secret" required maxlength="5000" placeholder="…"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="email">Email — optional, for a printed copy</label>
+            <input type="email" id="email" name="email" placeholder="…" />
+          </div>
+
+          <div class="actions">
+            <button type="submit" id="submit-btn">Drop it</button>
+          </div>
+        </form>
+
+        <div class="status" id="status"></div>
+      </div>
+
+      <div class="thanks" id="thanks-view">
+        <img src="logo_FBCQ.jpg" alt="FBC Quarterly" class="logo" />
+        <p>Thank you. Your advice is in the box.</p>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // === CONFIG ===================================================
+    // Replace with your Formspree endpoint.
+    // Sign up at https://formspree.io, create a form pointed at
+    // fbcquarterly@gmail.com, confirm the email, paste the URL below.
+    const FORMSPREE_ENDPOINT = "https://formspree.io/f/YOUR_FORM_ID";
+    // ==============================================================
+
+    const form = document.getElementById("secret-form");
+    const btn = document.getElementById("submit-btn");
+    const statusEl = document.getElementById("status");
+    const formView = document.getElementById("form-view");
+    const thanksView = document.getElementById("thanks-view");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const secret = document.getElementById("secret").value.trim();
+      const email = document.getElementById("email").value.trim();
+      if (!secret) return;
+
+      btn.disabled = true;
+      btn.textContent = "Sending…";
+      statusEl.classList.remove("show");
+
+      try {
+        const res = await fetch(FORMSPREE_ENDPOINT, {
+          method: "POST",
+          headers: { "Accept": "application/json", "Content-Type": "application/json" },
+          body: JSON.stringify({
+            advice: secret,
+            subscriber_email: email || "(not provided)",
+            _subject: "New advice for FBC Quarterly"
+          })
+        });
+
+        if (res.ok) {
+          formView.style.display = "none";
+          thanksView.classList.add("show");
+        } else {
+          throw new Error("Submission failed");
+        }
+      } catch (err) {
+        statusEl.textContent = "Something went wrong. Try again.";
+        statusEl.classList.add("show");
+        btn.disabled = false;
+        btn.textContent = "Drop it";
+      }
+    });
+  </script>
+</body>
+</html>
